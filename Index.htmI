@@ -1,0 +1,37 @@
+<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>حفظ أي جزء 🌿</title><style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@700&display=swap');*{font-family:Tajawal}body{background:#E8F8F5;margin:0;padding:12px}.h{background:linear-gradient(135deg,#00B894,#A8E6CF);color:#fff;padding:18px;border-radius:18px;text-align:center}.card{background:#fff;border-radius:12px;padding:10px;margin:8px 0;display:flex;align-items:center;gap:6px;box-shadow:0 2px 6px #0001}.card.done{border:2px solid #00B894;background:#FFF0F8}.heart{font-size:32px;background:none;border:none;cursor:pointer}.inp{flex:1;padding:7px;border:1px solid #A8E6CF;border-radius:8px}.reward{background:#FFF8DC;padding:12px;border-radius:12px;margin-top:12px}.reward input{width:100%;padding:8px;border:2px solid #A8E6CF;border-radius:8px;margin:4px 0}.pop{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:20px;box-shadow:0 10px 30px #0003;z-index:999;text-align:center;border:3px solid #00B894}.pop.show{display:block}</style></head><body>
+<div class=h><h2 style="margin:0">🌿 جدولي لأي جزء - يا حافظة كتاب الله 📖</h2><small>اضغطي القلب وكتبي مكافأتك</small></div>
+<div id=cards></div>
+<div style="background:#fff;padding:10px;border-radius:12px;text-align:center;margin:10px 0">التقدم <span id=c>0</span>/6 <div style="background:#eee;height:14px;border-radius:8px"><div id=bar style="background:#00B894;height:100%;width:0%;border-radius:8px;transition:0.5s"></div></div></div>
+<div class=reward><b>🎁 ركن مكافآتي - اكتبي هنا ✍️</b><div id=rw></div></div>
+<div id=pop class=pop><button onclick="this.parentElement.classList.remove('show')" style="position:absolute;top:5px;left:8px;border:none;background:none;font-size:20px">×</button><div style="font-size:60px">👧🏻💖</div><div id=msg style="background:#E8F8F5;padding:8px;border-radius:8px;margin:8px 0;font-weight:bold;color:#C71585"></div><button onclick="speakAgain()" style="background:#00B894;color:#fff;border:none;padding:6px 12px;border-radius:8px">🔊 إعادة الصوت</button></div>
+<script>
+let msgs=["أحسنت يا حافظة كتاب الله زادك الله نورا","ما شاء الله حفظك رائع استمري","بارك الله فيك انت على طريق النور","ممتازة الله يثبت حفظك في صدرك","رائعة يا بطلة القرآن يرفعك درجات"];
+let surahs=[["اكتبي السورة",6]];
+let last="";
+function init(){
+let cont=document.getElementById('cards');let idx=0;
+surahs.forEach(s=>{
+for(let i=0;i<s[1];i++){idx++;
+let d=document.createElement('div');d.className='card';d.id='card'+idx;
+d.innerHTML=`<span style="min-width:70px">${s[0]} ص${idx}</span><input class=inp type=date><button class=heart data-i=${idx} onclick="toggle(${idx})">🤍</button>`;
+cont.appendChild(d);
+}
+});
+for(let i=0;i<4;i++){let b=document.createElement('div');b.innerHTML=`<input id=r${i} placeholder="مكافأة ${['25%','50%','75%','100%'][i]} مثلا آيسكريم 🍦" oninput="save()">`;document.getElementById('rw').appendChild(b)}
+load();
+}
+function toggle(i){
+let btn=document.querySelector('[data-i="'+i+'"]');let card=document.getElementById('card'+i);
+let isWhite=btn.textContent.includes('🤍');
+btn.textContent=isWhite?'💖':'🤍';card.classList.toggle('done',isWhite);
+if(isWhite){let m=msgs[Math.floor(Math.random()*msgs.length)];if(m==last)m=msgs[(msgs.indexOf(m)+1)%msgs.length];last=m;document.getElementById('msg').textContent=m;document.getElementById('pop').classList.add('show');play();speak(m);}
+save();update();
+}
+function play(){try{let c=new AudioContext();[523,659,784].forEach((f,j)=>{setTimeout(()=>{let o=c.createOscillator(),g=c.createGain();o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(0.3,c.currentTime);g.gain.exponentialRampToValueAtTime(0.01,c.currentTime+0.6);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+0.6)},j*150)})}catch(e){}}
+function speak(t){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang='ar-SA';u.rate=0.85;let v=speechSynthesis.getVoices().find(x=>x.lang.startsWith('ar'));if(v)u.voice=v;speechSynthesis.speak(u);}
+function speakAgain(){let t=document.getElementById('msg').textContent;if(t)speak(t)}
+function update(){let total=document.querySelectorAll('.heart').length;let count=0;document.querySelectorAll('.heart').forEach(b=>{if(b.textContent.includes('💖'))count++});document.getElementById('c').textContent=count;document.getElementById('bar').style.width=(count/total*100)+'%'}
+function save(){let data={hearts:{},dates:{},rewards:{}};document.querySelectorAll('.heart').forEach(b=>{data.hearts[b.dataset.i]=b.textContent});document.querySelectorAll('.card input[type=date]').forEach((inp,idx)=>{data.dates[idx]=inp.value});for(let i=0;i<4;i++){let el=document.getElementById('r'+i);if(el)data.rewards[i]=el.value}localStorage.setItem('greenAny',JSON.stringify(data))}
+function load(){let raw=localStorage.getItem('greenAny');if(!raw)return;try{let d=JSON.parse(raw);for(let k in d.hearts){let b=document.querySelector('[data-i="'+k+'"]');if(b){b.textContent=d.hearts[k];if(d.hearts[k].includes('💖'))document.getElementById('card'+k).classList.add('done')}}for(let k in d.dates){let inp=document.querySelectorAll('.card input[type=date]')[k];if(inp)inp.value=d.dates[k]}for(let k in d.rewards){let el=document.getElementById('r'+k);if(el)el.value=d.rewards[k]}update()}catch(e){}}
+window.onload=init;
+</script></body></html>
